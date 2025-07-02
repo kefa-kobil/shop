@@ -18,7 +18,7 @@ import {
   UserOutlined,
   ShoppingCartOutlined,
   DollarOutlined,
-  TrendingUpOutlined,
+  LineChartOutlined,
   PlusOutlined,
   TeamOutlined
 } from '@ant-design/icons'
@@ -203,7 +203,7 @@ export const AdminDashboard = () => {
               </Col>
               <Col xs={24} md={8}>
                 <Button 
-                  icon={<TrendingUpOutlined />} 
+                  icon={<LineChartOutlined />} 
                   size="large"
                   block
                   className="h-16 flex items-center justify-center"

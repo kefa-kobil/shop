@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { logoutUser } from '../../store/slices/authSlice'
 import { 
   Layout, 
   Menu, 
@@ -25,21 +26,26 @@ import {
 const { Header: AntHeader } = Layout
 
 export const Header = () => {
-  const { user, userProfile, signOut, isAdmin, isManager } = useAuth()
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const { user, isAuthenticated } = useSelector((state) => state.auth)
+  const { itemCount } = useSelector((state) => state.cart)
   const [drawerVisible, setDrawerVisible] = useState(false)
 
-  const handleSignOut = async () => {
-    await signOut()
+  const handleSignOut = () => {
+    dispatch(logoutUser())
     navigate('/')
     setDrawerVisible(false)
   }
+
+  const isManager = user?.role === 'manager' || user?.role === 'admin'
+  const isAdmin = user?.role === 'admin'
 
   const userMenuItems = [
     {
       key: 'profile',
       icon: <UserOutlined />,
-      label: userProfile?.full_name || user?.email,
+      label: user?.fullName || user?.email,
       disabled: true,
     },
     {
@@ -66,7 +72,7 @@ export const Header = () => {
       icon: <ShoppingOutlined />,
       label: <Link to="/">Products</Link>,
     },
-    ...(user ? [
+    ...(isAuthenticated ? [
       {
         key: 'orders',
         icon: <OrderedListOutlined />,
@@ -84,7 +90,7 @@ export const Header = () => {
 
   const mobileMenuItems = [
     ...navigationItems,
-    ...(user ? [
+    ...(isAuthenticated ? [
       {
         type: 'divider',
       },
@@ -134,10 +140,10 @@ export const Header = () => {
 
         {/* Right side */}
         <div className="flex items-center space-x-4">
-          {user ? (
+          {isAuthenticated ? (
             <Space size="middle">
               <Link to="/cart">
-                <Badge count={0} size="small">
+                <Badge count={itemCount} size="small">
                   <Button 
                     type="text" 
                     icon={<ShoppingCartOutlined />} 
@@ -148,9 +154,9 @@ export const Header = () => {
               </Link>
               
               <div className="hidden md:flex items-center space-x-2">
-                {userProfile?.role && (
+                {user?.role && (
                   <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">
-                    {userProfile.role}
+                    {user.role}
                   </span>
                 )}
                 <Dropdown
@@ -161,7 +167,7 @@ export const Header = () => {
                   <Button type="text" className="flex items-center space-x-2">
                     <Avatar size="small" icon={<UserOutlined />} />
                     <span className="hidden lg:inline text-sm">
-                      {userProfile?.full_name || user.email}
+                      {user?.fullName || user?.email}
                     </span>
                   </Button>
                 </Dropdown>
@@ -202,16 +208,16 @@ export const Header = () => {
             onClick={() => setDrawerVisible(false)}
           />
           
-          {user && userProfile?.role && (
+          {isAuthenticated && user?.role && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Avatar size="small" icon={<UserOutlined />} />
                 <div>
                   <div className="text-sm font-medium">
-                    {userProfile?.full_name || user.email}
+                    {user?.fullName || user?.email}
                   </div>
                   <div className="text-xs text-gray-500 capitalize">
-                    {userProfile.role}
+                    {user.role}
                   </div>
                 </div>
               </div>

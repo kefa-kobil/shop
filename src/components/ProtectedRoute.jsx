@@ -1,8 +1,8 @@
-import { useAuth } from '../contexts/AuthContext'
+import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 
 export const ProtectedRoute = ({ children, requireAdmin = false, requireManager = false }) => {
-  const { user, loading, isAdmin, isManager } = useAuth()
+  const { isAuthenticated, user, loading } = useSelector((state) => state.auth)
 
   if (loading) {
     return (
@@ -12,15 +12,15 @@ export const ProtectedRoute = ({ children, requireAdmin = false, requireManager 
     )
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/auth" replace />
   }
 
-  if (requireAdmin && !isAdmin) {
+  if (requireAdmin && user?.role !== 'admin') {
     return <Navigate to="/" replace />
   }
 
-  if (requireManager && !isManager) {
+  if (requireManager && !['manager', 'admin'].includes(user?.role)) {
     return <Navigate to="/" replace />
   }
 

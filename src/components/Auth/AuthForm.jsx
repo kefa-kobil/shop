@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { loginUser, signupUser, clearError } from '../../store/slices/authSlice'
 import { 
   Form, 
   Input, 
@@ -27,66 +28,40 @@ const { Option } = Select
 export const AuthForm = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { signIn, signUp } = useAuth()
+  const dispatch = useDispatch()
+  
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth)
   
   const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [form] = Form.useForm()
 
-  const handleSubmit = async (values) => {
-    setLoading(true)
-    setError('')
-    setSuccess('')
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/')
+    }
+  }, [isAuthenticated, navigate])
 
-    try {
-      console.log('Form values:', values)
-      
-      if (isSignUp) {
-        const { data, error } = await signUp(values.email, values.password, {
-          full_name: values.fullName,
-          role: values.role
-        })
-        
-        if (error) {
-          console.error('Signup error:', error)
-          throw error
-        }
-        
-        if (data.user) {
-          if (data.user.email_confirmed_at) {
-            setSuccess('Account created successfully! You can now sign in.')
-            navigate('/')
-          } else {
-            setSuccess('Account created! Please check your email to confirm your account before signing in.')
-          }
-        }
-      } else {
-        const { data, error } = await signIn(values.email, values.password)
-        
-        if (error) {
-          console.error('Signin error:', error)
-          throw error
-        }
-        
-        if (data.user) {
-          setSuccess('Signed in successfully!')
-          navigate('/')
-        }
-      }
-    } catch (error) {
-      console.error('Auth error:', error)
-      setError(error.message || 'An error occurred during authentication')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    // Clear error when component mounts or mode changes
+    dispatch(clearError())
+  }, [dispatch, isSignUp])
+
+  const handleSubmit = async (values) => {
+    if (isSignUp) {
+      dispatch(signupUser({
+        email: values.email,
+        password: values.password,
+        fullName: values.fullName,
+        role: values.role
+      }))
+    } else {
+      dispatch(loginUser(values.email, values.password))
     }
   }
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp)
-    setError('')
-    setSuccess('')
+    dispatch(clearError())
     form.resetFields()
   }
 
@@ -113,16 +88,8 @@ export const AuthForm = () => {
               type="error"
               showIcon
               className="mb-6"
-            />
-          )}
-
-          {success && (
-            <Alert
-              message="Success"
-              description={success}
-              type="success"
-              showIcon
-              className="mb-6"
+              closable
+              onClose={() => dispatch(clearError())}
             />
           )}
 

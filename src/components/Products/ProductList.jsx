@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { ProductCard } from './ProductCard'
-import { useAuth } from '../../contexts/AuthContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { addToCart } from '../../store/slices/cartSlice'
 import { 
   Row, 
   Col, 
@@ -27,7 +28,9 @@ export const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [categories, setCategories] = useState([])
-  const { user } = useAuth()
+  
+  const dispatch = useDispatch()
+  const { isAuthenticated } = useSelector((state) => state.auth)
 
   useEffect(() => {
     fetchProducts()
@@ -68,51 +71,14 @@ export const ProductList = () => {
     }
   }
 
-  const handleAddToCart = async (product) => {
-    if (!user) {
+  const handleAddToCart = (product) => {
+    if (!isAuthenticated) {
       message.warning('Please sign in to add items to cart')
       return
     }
 
-    try {
-      // Check if item already exists in cart
-      const { data: existingItem, error: fetchError } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('product_id', product.id)
-        .single()
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError
-      }
-
-      if (existingItem) {
-        // Update quantity
-        const { error: updateError } = await supabase
-          .from('cart_items')
-          .update({ quantity: existingItem.quantity + 1 })
-          .eq('id', existingItem.id)
-
-        if (updateError) throw updateError
-      } else {
-        // Add new item
-        const { error: insertError } = await supabase
-          .from('cart_items')
-          .insert({
-            user_id: user.id,
-            product_id: product.id,
-            quantity: 1
-          })
-
-        if (insertError) throw insertError
-      }
-
-      message.success('Item added to cart!')
-    } catch (error) {
-      console.error('Error adding to cart:', error)
-      message.error('Failed to add item to cart')
-    }
+    dispatch(addToCart(product))
+    message.success('Item added to cart!')
   }
 
   const filteredProducts = products.filter(product => {

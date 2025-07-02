@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { supabase } from '../../lib/supabase'
 import { 
   Card, 
   Row, 
@@ -17,7 +18,8 @@ import {
   message,
   Avatar,
   Divider,
-  Alert
+  Alert,
+  Spin
 } from 'antd'
 import { 
   ArrowLeftOutlined,
@@ -42,79 +44,85 @@ export const AuctionDetail = () => {
   const [bidAmount, setBidAmount] = useState(0)
   const [form] = Form.useForm()
 
-  // Mock auction data
-  const mockAuction = {
-    id: '1',
-    title: 'Premium Organic Apples - 5kg Box',
-    description: 'Fresh organic apples from local farms, perfect for families. These apples are hand-picked and certified organic. Great for eating fresh, baking, or making juice.',
-    starting_price: 15.00,
-    current_price: 23.50,
-    min_bid_increment: 1.00,
-    start_time: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    end_time: new Date(Date.now() + 22 * 60 * 60 * 1000),
-    status: 'active',
-    bid_count: 8,
-    image_url: 'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg',
-    category: 'Fruits',
-    created_by: 'manager@test.com'
-  }
-
-  const mockBids = [
-    {
-      id: '1',
-      user_name: 'John D.',
-      amount: 23.50,
-      created_at: new Date(Date.now() - 5 * 60 * 1000),
-      is_current_user: false
-    },
-    {
-      id: '2',
-      user_name: 'Sarah M.',
-      amount: 22.00,
-      created_at: new Date(Date.now() - 15 * 60 * 1000),
-      is_current_user: false
-    },
-    {
-      id: '3',
-      user_name: 'Mike R.',
-      amount: 21.50,
-      created_at: new Date(Date.now() - 25 * 60 * 1000),
-      is_current_user: true
-    },
-    {
-      id: '4',
-      user_name: 'Lisa K.',
-      amount: 20.00,
-      created_at: new Date(Date.now() - 35 * 60 * 1000),
-      is_current_user: false
-    },
-    {
-      id: '5',
-      user_name: 'Tom B.',
-      amount: 18.50,
-      created_at: new Date(Date.now() - 45 * 60 * 1000),
-      is_current_user: false
-    }
-  ]
-
   useEffect(() => {
     fetchAuctionDetails()
   }, [id])
 
   useEffect(() => {
     if (auction) {
-      setBidAmount(auction.current_price + auction.min_bid_increment)
+      const nextBidAmount = parseFloat(auction.current_price) + parseFloat(auction.min_bid_increment)
+      setBidAmount(nextBidAmount)
+      form.setFieldsValue({ amount: nextBidAmount })
     }
-  }, [auction])
+  }, [auction, form])
 
   const fetchAuctionDetails = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAuction(mockAuction)
-      setBids(mockBids)
+      // Fetch auction with product details
+      const { data: auctionData, error: auctionError } = await supabase
+        .from('auctions')
+        .select(`
+          *,
+          products (
+            name,
+            description,
+            image_url,
+            category,
+            price
+          )
+        `)
+        .eq('id', id)
+        .single()
+
+      if (auctionError) throw auctionError
+
+      if (!auctionData) {
+        setAuction(null)
+        setLoading(false)
+        return
+      }
+
+      // Transform auction data
+      const transformedAuction = {
+        ...auctionData,
+        title: auctionData.title || auctionData.products?.name || 'Untitled Auction',
+        description: auctionData.description || auctionData.products?.description || 'No description available',
+        image_url: auctionData.products?.image_url || 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg',
+        category: auctionData.products?.category || 'General'
+      }
+
+      setAuction(transformedAuction)
+
+      // Fetch bids for this auction
+      const { data: bidsData, error: bidsError } = await supabase
+        .from('bids')
+        .select(`
+          *,
+          profiles (
+            full_name
+          )
+        `)
+        .eq('auction_id', id)
+        .order('created_at', { ascending: false })
+
+      if (bidsError) {
+        console.error('Error fetching bids:', bidsError)
+        // Don't throw error, just set empty bids
+        setBids([])
+      } else {
+        // Transform bids data
+        const transformedBids = bidsData?.map(bid => ({
+          ...bid,
+          user_name: bid.profiles?.full_name || 'Anonymous',
+          is_current_user: bid.user_id === user?.id
+        })) || []
+
+        setBids(transformedBids)
+      }
+
     } catch (error) {
+      console.error('Error fetching auction details:', error)
       message.error('Failed to fetch auction details')
     } finally {
       setLoading(false)
@@ -127,44 +135,68 @@ export const AuctionDetail = () => {
       return
     }
 
-    if (values.amount <= auction.current_price) {
-      message.error(`Bid must be higher than current price of $${auction.current_price}`)
+    const currentPrice = parseFloat(auction.current_price)
+    const minIncrement = parseFloat(auction.min_bid_increment)
+    const bidValue = parseFloat(values.amount)
+
+    if (bidValue <= currentPrice) {
+      message.error(`Bid must be higher than current price of $${currentPrice.toFixed(2)}`)
       return
     }
 
-    if (values.amount < auction.current_price + auction.min_bid_increment) {
-      message.error(`Minimum bid increment is $${auction.min_bid_increment}`)
+    if (bidValue < currentPrice + minIncrement) {
+      message.error(`Minimum bid increment is $${minIncrement.toFixed(2)}`)
       return
     }
 
     setBidLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      // Insert new bid
+      const { data: bidData, error: bidError } = await supabase
+        .from('bids')
+        .insert({
+          auction_id: auction.id,
+          user_id: user.id,
+          amount: bidValue
+        })
+        .select()
+        .single()
+
+      if (bidError) throw bidError
+
       // Update auction current price
+      const { error: updateError } = await supabase
+        .from('auctions')
+        .update({ 
+          current_price: bidValue,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', auction.id)
+
+      if (updateError) throw updateError
+
+      // Update local state
       setAuction(prev => ({
         ...prev,
-        current_price: values.amount,
-        bid_count: prev.bid_count + 1
+        current_price: bidValue
       }))
 
       // Add new bid to the list
       const newBid = {
-        id: Date.now().toString(),
-        user_name: user?.fullName?.split(' ').map(n => n[0]).join('') + '.' || 'You',
-        amount: values.amount,
-        created_at: new Date(),
+        ...bidData,
+        user_name: user?.fullName || 'You',
         is_current_user: true
       }
       setBids(prev => [newBid, ...prev])
 
       // Update minimum bid amount
-      setBidAmount(values.amount + auction.min_bid_increment)
-      form.setFieldsValue({ amount: values.amount + auction.min_bid_increment })
+      const nextBidAmount = bidValue + minIncrement
+      setBidAmount(nextBidAmount)
+      form.setFieldsValue({ amount: nextBidAmount })
 
       message.success('Bid placed successfully!')
     } catch (error) {
+      console.error('Error placing bid:', error)
       message.error('Failed to place bid')
     } finally {
       setBidLoading(false)
@@ -219,7 +251,7 @@ export const AuctionDetail = () => {
       key: 'amount',
       render: (amount) => (
         <Text strong className="text-green-600">
-          ${amount.toFixed(2)}
+          ${parseFloat(amount).toFixed(2)}
         </Text>
       ),
     },
@@ -238,7 +270,7 @@ export const AuctionDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <Spin size="large" />
       </div>
     )
   }
@@ -300,7 +332,7 @@ export const AuctionDetail = () => {
                 <Col xs={12} sm={6}>
                   <Statistic
                     title="Starting Price"
-                    value={auction.starting_price}
+                    value={parseFloat(auction.starting_price)}
                     prefix={<DollarOutlined />}
                     precision={2}
                   />
@@ -308,7 +340,7 @@ export const AuctionDetail = () => {
                 <Col xs={12} sm={6}>
                   <Statistic
                     title="Current Bid"
-                    value={auction.current_price}
+                    value={parseFloat(auction.current_price)}
                     prefix={<DollarOutlined />}
                     precision={2}
                     valueStyle={{ color: '#52c41a', fontWeight: 'bold' }}
@@ -317,13 +349,13 @@ export const AuctionDetail = () => {
                 <Col xs={12} sm={6}>
                   <Statistic
                     title="Total Bids"
-                    value={auction.bid_count}
+                    value={bids.length}
                   />
                 </Col>
                 <Col xs={12} sm={6}>
                   <Statistic
                     title="Min Increment"
-                    value={auction.min_bid_increment}
+                    value={parseFloat(auction.min_bid_increment)}
                     prefix={<DollarOutlined />}
                     precision={2}
                   />
@@ -364,7 +396,6 @@ export const AuctionDetail = () => {
                     form={form}
                     onFinish={handlePlaceBid}
                     layout="vertical"
-                    initialValues={{ amount: bidAmount }}
                   >
                     <Form.Item
                       name="amount"
@@ -373,11 +404,14 @@ export const AuctionDetail = () => {
                         { required: true, message: 'Please enter bid amount' },
                         {
                           validator: (_, value) => {
-                            if (value <= auction.current_price) {
+                            const currentPrice = parseFloat(auction.current_price)
+                            const minIncrement = parseFloat(auction.min_bid_increment)
+                            
+                            if (value <= currentPrice) {
                               return Promise.reject('Bid must be higher than current price')
                             }
-                            if (value < auction.current_price + auction.min_bid_increment) {
-                              return Promise.reject(`Minimum increment is $${auction.min_bid_increment}`)
+                            if (value < currentPrice + minIncrement) {
+                              return Promise.reject(`Minimum increment is $${minIncrement.toFixed(2)}`)
                             }
                             return Promise.resolve()
                           }
@@ -385,18 +419,16 @@ export const AuctionDetail = () => {
                       ]}
                     >
                       <InputNumber
-                        min={auction.current_price + auction.min_bid_increment}
-                        step={auction.min_bid_increment}
+                        min={parseFloat(auction.current_price) + parseFloat(auction.min_bid_increment)}
+                        step={parseFloat(auction.min_bid_increment)}
                         precision={2}
                         className="w-full"
                         size="large"
-                        value={bidAmount}
-                        onChange={setBidAmount}
                       />
                     </Form.Item>
                     
                     <Text type="secondary" className="block mb-4">
-                      Minimum bid: ${(auction.current_price + auction.min_bid_increment).toFixed(2)}
+                      Minimum bid: ${(parseFloat(auction.current_price) + parseFloat(auction.min_bid_increment)).toFixed(2)}
                     </Text>
 
                     <Button

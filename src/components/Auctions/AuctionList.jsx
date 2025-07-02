@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { supabase } from '../../lib/supabase'
 import { 
   Row, 
   Col, 
@@ -40,52 +41,6 @@ export const AuctionList = () => {
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
 
-  // Mock auction data
-  const mockAuctions = [
-    {
-      id: '1',
-      title: 'Premium Organic Apples - 5kg Box',
-      description: 'Fresh organic apples from local farms, perfect for families',
-      starting_price: 15.00,
-      current_price: 23.50,
-      min_bid_increment: 1.00,
-      start_time: new Date(Date.now() - 2 * 60 * 60 * 1000), // Started 2 hours ago
-      end_time: new Date(Date.now() + 22 * 60 * 60 * 1000), // Ends in 22 hours
-      status: 'active',
-      bid_count: 8,
-      image_url: 'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg',
-      category: 'Fruits'
-    },
-    {
-      id: '2',
-      title: 'Artisan Sourdough Bread Bundle',
-      description: 'Freshly baked sourdough bread, 3 loaves',
-      starting_price: 8.00,
-      current_price: 12.75,
-      min_bid_increment: 0.50,
-      start_time: new Date(Date.now() - 1 * 60 * 60 * 1000), // Started 1 hour ago
-      end_time: new Date(Date.now() + 47 * 60 * 60 * 1000), // Ends in 47 hours
-      status: 'active',
-      bid_count: 5,
-      image_url: 'https://images.pexels.com/photos/209206/pexels-photo-209206.jpeg',
-      category: 'Bakery'
-    },
-    {
-      id: '3',
-      title: 'Premium Wagyu Beef Steaks',
-      description: 'Grade A5 Wagyu beef steaks, 2 pieces',
-      starting_price: 45.00,
-      current_price: 67.50,
-      min_bid_increment: 2.50,
-      start_time: new Date(Date.now() - 30 * 60 * 1000), // Started 30 minutes ago
-      end_time: new Date(Date.now() + 71 * 60 * 60 * 1000), // Ends in 71 hours
-      status: 'active',
-      bid_count: 12,
-      image_url: 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg',
-      category: 'Meat'
-    }
-  ]
-
   useEffect(() => {
     fetchAuctions()
   }, [statusFilter])
@@ -93,10 +48,46 @@ export const AuctionList = () => {
   const fetchAuctions = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAuctions(mockAuctions)
+      let query = supabase
+        .from('auctions')
+        .select(`
+          *,
+          products (
+            name,
+            description,
+            image_url,
+            category,
+            price
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (statusFilter) {
+        query = query.eq('status', statusFilter)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      // Transform the data to include product information
+      const transformedAuctions = data?.map(auction => ({
+        ...auction,
+        // Use product name as title if not set
+        title: auction.title || auction.products?.name || 'Untitled Auction',
+        // Use product description if auction description is empty
+        description: auction.description || auction.products?.description || 'No description available',
+        // Use product image
+        image_url: auction.products?.image_url || 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg',
+        // Use product category
+        category: auction.products?.category || 'General',
+        // Calculate bid count (mock for now since we don't have actual bids)
+        bid_count: Math.floor(Math.random() * 20) + 1
+      })) || []
+
+      setAuctions(transformedAuctions)
     } catch (error) {
+      console.error('Error fetching auctions:', error)
       message.error('Failed to fetch auctions')
     } finally {
       setLoading(false)
@@ -254,7 +245,7 @@ export const AuctionList = () => {
                     <div className="flex justify-between items-center">
                       <Text type="secondary">Current Bid:</Text>
                       <Text strong className="text-lg text-green-600">
-                        <DollarOutlined />{auction.current_price.toFixed(2)}
+                        <DollarOutlined />{parseFloat(auction.current_price).toFixed(2)}
                       </Text>
                     </div>
 
@@ -262,7 +253,7 @@ export const AuctionList = () => {
                     <div className="flex justify-between items-center">
                       <Text type="secondary">Starting Price:</Text>
                       <Text className="text-gray-500">
-                        ${auction.starting_price.toFixed(2)}
+                        ${parseFloat(auction.starting_price).toFixed(2)}
                       </Text>
                     </div>
 

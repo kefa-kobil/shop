@@ -20,7 +20,8 @@ import {
   LogoutOutlined,
   DashboardOutlined,
   ShoppingOutlined,
-  OrderedListOutlined
+  OrderedListOutlined,
+  GavelOutlined
 } from '@ant-design/icons'
 
 const { Header: AntHeader } = Layout
@@ -73,6 +74,11 @@ export const Header = () => {
       key: 'products',
       icon: <ShoppingOutlined />,
       label: <Link to="/">Products</Link>,
+    },
+    {
+      key: 'auctions',
+      icon: <GavelOutlined />,
+      label: <Link to="/auctions">Auctions</Link>,
     },
     ...(isAuthenticated ? [
       ...(isCustomer ? [

@@ -6,6 +6,9 @@ import { AdminDashboard } from './components/Admin/AdminDashboard'
 import { AddProduct } from './components/Admin/AddProduct.jsx'
 import { ManageUsers } from './components/Admin/ManageUsers'
 import { Analytics } from './components/Admin/Analytics'
+import { AuctionList } from './components/Auctions/AuctionList'
+import { AuctionDetail } from './components/Auctions/AuctionDetail'
+import { CreateAuction } from './components/Auctions/CreateAuction'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Cart } from './components/Cart/Cart'
 import { Orders } from './components/Orders/Orders'
@@ -22,6 +25,23 @@ function App() {
           <Routes>
             <Route path="/" element={<ProductList />} />
             <Route path="/auth" element={<AuthForm />} />
+            <Route path="/auctions" element={<AuctionList />} />
+            <Route 
+              path="/auctions/:id" 
+              element={
+                <ProtectedRoute>
+                  <AuctionDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/auctions/create" 
+              element={
+                <ProtectedRoute requireManager={true}>
+                  <CreateAuction />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/admin" 
               element={

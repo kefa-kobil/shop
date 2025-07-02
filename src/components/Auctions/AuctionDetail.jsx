@@ -25,7 +25,7 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   TrophyOutlined,
-  GavelOutlined
+  ThunderboltOutlined
 } from '@ant-design/icons'
 
 const { Title, Text } = Typography
@@ -358,7 +358,7 @@ export const AuctionDetail = () => {
 
             {/* Bidding Form */}
             {isAuctionActive() && (
-              <Card title={<Space><GavelOutlined />Place Your Bid</Space>}>
+              <Card title={<Space><ThunderboltOutlined />Place Your Bid</Space>}>
                 {isAuthenticated ? (
                   <Form
                     form={form}
@@ -405,7 +405,7 @@ export const AuctionDetail = () => {
                       loading={bidLoading}
                       size="large"
                       block
-                      icon={<GavelOutlined />}
+                      icon={<ThunderboltOutlined />}
                     >
                       Place Bid
                     </Button>

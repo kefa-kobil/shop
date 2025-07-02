@@ -21,7 +21,7 @@ import {
   DashboardOutlined,
   ShoppingOutlined,
   OrderedListOutlined,
-  GavelOutlined
+  ThunderboltOutlined
 } from '@ant-design/icons'
 
 const { Header: AntHeader } = Layout
@@ -77,7 +77,7 @@ export const Header = () => {
     },
     {
       key: 'auctions',
-      icon: <GavelOutlined />,
+      icon: <ThunderboltOutlined />,
       label: <Link to="/auctions">Auctions</Link>,
     },
     ...(isAuthenticated ? [

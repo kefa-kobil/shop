@@ -16,8 +16,8 @@ import {
 } from 'antd'
 import { 
   ArrowLeftOutlined,
-  TrendingUpOutlined,
-  TrendingDownOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
   DollarOutlined,
   ShoppingOutlined,
   UserOutlined,
@@ -100,9 +100,9 @@ export const Analytics = () => {
 
   const getGrowthIcon = (growth) => {
     return growth >= 0 ? (
-      <TrendingUpOutlined className="text-green-500" />
+      <ArrowUpOutlined className="text-green-500" />
     ) : (
-      <TrendingDownOutlined className="text-red-500" />
+      <ArrowDownOutlined className="text-red-500" />
     )
   }
 

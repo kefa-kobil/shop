@@ -5,14 +5,18 @@ import { ProductList } from './components/Products/ProductList'
 import { AuthForm } from './components/Auth/AuthForm'
 import { AdminDashboard } from './components/Admin/AdminDashboard'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { Layout, Typography } from 'antd'
+
+const { Content } = Layout
+const { Title, Text } = Typography
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <Layout className="min-h-screen">
           <Header />
-          <main>
+          <Content>
             <Routes>
               <Route path="/" element={<ProductList />} />
               <Route path="/auth" element={<AuthForm />} />
@@ -29,8 +33,8 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
-                      <p className="text-gray-600 mt-2">Order history will be displayed here</p>
+                      <Title level={2}>My Orders</Title>
+                      <Text type="secondary">Order history will be displayed here</Text>
                     </div>
                   </ProtectedRoute>
                 } 
@@ -40,15 +44,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-                      <p className="text-gray-600 mt-2">Cart items will be displayed here</p>
+                      <Title level={2}>Shopping Cart</Title>
+                      <Text type="secondary">Cart items will be displayed here</Text>
                     </div>
                   </ProtectedRoute>
                 } 
               />
             </Routes>
-          </main>
-        </div>
+          </Content>
+        </Layout>
       </Router>
     </AuthProvider>
   )

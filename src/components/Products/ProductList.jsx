@@ -2,6 +2,23 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { ProductCard } from './ProductCard'
 import { useAuth } from '../../contexts/AuthContext'
+import { 
+  Row, 
+  Col, 
+  Input, 
+  Select, 
+  Spin, 
+  Alert, 
+  Button, 
+  Typography, 
+  Space,
+  Empty,
+  message
+} from 'antd'
+import { SearchOutlined, FilterOutlined } from '@ant-design/icons'
+
+const { Title } = Typography
+const { Option } = Select
 
 export const ProductList = () => {
   const [products, setProducts] = useState([])
@@ -53,7 +70,7 @@ export const ProductList = () => {
 
   const handleAddToCart = async (product) => {
     if (!user) {
-      alert('Please sign in to add items to cart')
+      message.warning('Please sign in to add items to cart')
       return
     }
 
@@ -91,10 +108,10 @@ export const ProductList = () => {
         if (insertError) throw insertError
       }
 
-      alert('Item added to cart!')
+      message.success('Item added to cart!')
     } catch (error) {
       console.error('Error adding to cart:', error)
-      alert('Failed to add item to cart')
+      message.error('Failed to add item to cart')
     }
   }
 
@@ -108,70 +125,102 @@ export const ProductList = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <Spin size="large" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">{error}</p>
-        <button
-          onClick={fetchProducts}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Try Again
-        </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={fetchProducts}>
+              Try Again
+            </Button>
+          }
+        />
       </div>
     )
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <Title level={2} className="!mb-2">Our Products</Title>
+        <Typography.Text type="secondary">
+          Discover amazing deals on quality products
+        </Typography.Text>
+      </div>
+
       {/* Filters */}
-      <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-8">
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={16} md={18}>
+            <Input
+              size="large"
+              placeholder="Search products..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              size="large"
+              placeholder="All Categories"
+              value={categoryFilter || undefined}
+              onChange={setCategoryFilter}
+              allowClear
+              className="w-full"
+              suffixIcon={<FilterOutlined />}
+            >
+              {categories.map(category => (
+                <Option key={category} value={category}>
+                  {category}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+        </Row>
       </div>
 
       {/* Products Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 text-lg">No products found</p>
-          <p className="text-gray-500 mt-2">Try adjusting your search or filters</p>
-        </div>
+        <Empty
+          description={
+            <Space direction="vertical">
+              <Typography.Text>No products found</Typography.Text>
+              <Typography.Text type="secondary">
+                Try adjusting your search or filters
+              </Typography.Text>
+            </Space>
+          }
+          className="py-16"
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <Row gutter={[24, 24]}>
           {filteredProducts.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={handleAddToCart}
-            />
+            <Col 
+              key={product.id} 
+              xs={24} 
+              sm={12} 
+              md={8} 
+              lg={6}
+            >
+              <ProductCard
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
+            </Col>
           ))}
-        </div>
+        </Row>
       )}
     </div>
   )

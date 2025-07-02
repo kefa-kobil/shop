@@ -2,13 +2,28 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
-  Package, 
-  Users, 
-  ShoppingCart, 
-  DollarSign,
-  TrendingUp,
-  Plus
-} from 'lucide-react'
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Button,
+  Typography,
+  Space,
+  Timeline,
+  Spin,
+  Alert
+} from 'antd'
+import { 
+  ShoppingOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+  DollarOutlined,
+  TrendingUpOutlined,
+  PlusOutlined,
+  TeamOutlined
+} from '@ant-design/icons'
+
+const { Title, Text } = Typography
 
 export const AdminDashboard = () => {
   const { isManager } = useAuth()
@@ -61,10 +76,13 @@ export const AdminDashboard = () => {
   if (!isManager) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
+        <Alert
+          message="Access Denied"
+          description="You don't have permission to access this page."
+          type="error"
+          showIcon
+          className="text-center"
+        />
       </div>
     )
   }
@@ -72,7 +90,7 @@ export const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <Spin size="large" />
       </div>
     )
   }
@@ -81,105 +99,143 @@ export const AdminDashboard = () => {
     {
       title: 'Total Products',
       value: stats.totalProducts,
-      icon: Package,
-      color: 'bg-blue-500'
+      icon: <ShoppingOutlined className="text-blue-600" />,
+      color: '#1890ff'
     },
     {
       title: 'Total Users',
       value: stats.totalUsers,
-      icon: Users,
-      color: 'bg-green-500'
+      icon: <UserOutlined className="text-green-600" />,
+      color: '#52c41a'
     },
     {
       title: 'Total Orders',
       value: stats.totalOrders,
-      icon: ShoppingCart,
-      color: 'bg-yellow-500'
+      icon: <ShoppingCartOutlined className="text-orange-600" />,
+      color: '#fa8c16'
     },
     {
       title: 'Total Revenue',
-      value: `$${stats.totalRevenue.toFixed(2)}`,
-      icon: DollarSign,
-      color: 'bg-purple-500'
+      value: stats.totalRevenue,
+      prefix: '$',
+      precision: 2,
+      icon: <DollarOutlined className="text-purple-600" />,
+      color: '#722ed1'
     }
+  ]
+
+  const timelineItems = [
+    {
+      color: 'blue',
+      children: (
+        <div>
+          <Text strong>New product added</Text>
+          <br />
+          <Text type="secondary">2 hours ago</Text>
+        </div>
+      ),
+    },
+    {
+      color: 'green',
+      children: (
+        <div>
+          <Text strong>New order received</Text>
+          <br />
+          <Text type="secondary">4 hours ago</Text>
+        </div>
+      ),
+    },
+    {
+      color: 'purple',
+      children: (
+        <div>
+          <Text strong>New user registered</Text>
+          <br />
+          <Text type="secondary">6 hours ago</Text>
+        </div>
+      ),
+    },
   ]
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage your supermarket operations</p>
+        <Title level={2} className="!mb-2">Admin Dashboard</Title>
+        <Text type="secondary">Manage your supermarket operations</Text>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <Row gutter={[24, 24]} className="mb-8">
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              </div>
-            </div>
-          </div>
+          <Col key={index} xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title={stat.title}
+                value={stat.value}
+                prefix={stat.prefix}
+                precision={stat.precision}
+                valueStyle={{ color: stat.color }}
+                suffix={stat.icon}
+              />
+            </Card>
+          </Col>
         ))}
-      </div>
+      </Row>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-            <Plus className="h-5 w-5" />
-            <span>Add Product</span>
-          </button>
-          <button className="flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
-            <TrendingUp className="h-5 w-5" />
-            <span>View Analytics</span>
-          </button>
-          <button className="flex items-center justify-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors">
-            <Users className="h-5 w-5" />
-            <span>Manage Users</span>
-          </button>
-        </div>
-      </div>
+      <Row gutter={[24, 24]}>
+        {/* Quick Actions */}
+        <Col xs={24} lg={16}>
+          <Card title="Quick Actions" className="h-full">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={8}>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>Add Product</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col xs={24} md={8}>
+                <Button 
+                  icon={<TrendingUpOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>View Analytics</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col xs={24} md={8}>
+                <Button 
+                  icon={<TeamOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>Manage Users</span>
+                  </Space>
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <Package className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">New product added</p>
-              <p className="text-sm text-gray-600">2 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-            <div className="bg-green-100 p-2 rounded-full">
-              <ShoppingCart className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">New order received</p>
-              <p className="text-sm text-gray-600">4 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-            <div className="bg-purple-100 p-2 rounded-full">
-              <Users className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">New user registered</p>
-              <p className="text-sm text-gray-600">6 hours ago</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        {/* Recent Activity */}
+        <Col xs={24} lg={8}>
+          <Card title="Recent Activity" className="h-full">
+            <Timeline items={timelineItems} />
+          </Card>
+        </Col>
+      </Row>
     </div>
   )
 }

@@ -32,27 +32,52 @@ export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [form] = Form.useForm()
 
   const handleSubmit = async (values) => {
     setLoading(true)
     setError('')
+    setSuccess('')
 
     try {
+      console.log('Form values:', values)
+      
       if (isSignUp) {
-        const { error } = await signUp(values.email, values.password, {
+        const { data, error } = await signUp(values.email, values.password, {
           full_name: values.fullName,
           role: values.role
         })
-        if (error) throw error
-        navigate('/')
+        
+        if (error) {
+          console.error('Signup error:', error)
+          throw error
+        }
+        
+        if (data.user) {
+          if (data.user.email_confirmed_at) {
+            setSuccess('Account created successfully! You can now sign in.')
+            navigate('/')
+          } else {
+            setSuccess('Account created! Please check your email to confirm your account before signing in.')
+          }
+        }
       } else {
-        const { error } = await signIn(values.email, values.password)
-        if (error) throw error
-        navigate('/')
+        const { data, error } = await signIn(values.email, values.password)
+        
+        if (error) {
+          console.error('Signin error:', error)
+          throw error
+        }
+        
+        if (data.user) {
+          setSuccess('Signed in successfully!')
+          navigate('/')
+        }
       }
     } catch (error) {
-      setError(error.message)
+      console.error('Auth error:', error)
+      setError(error.message || 'An error occurred during authentication')
     } finally {
       setLoading(false)
     }
@@ -61,6 +86,7 @@ export const AuthForm = () => {
   const toggleMode = () => {
     setIsSignUp(!isSignUp)
     setError('')
+    setSuccess('')
     form.resetFields()
   }
 
@@ -82,8 +108,19 @@ export const AuthForm = () => {
 
           {error && (
             <Alert
-              message={error}
+              message="Authentication Error"
+              description={error}
               type="error"
+              showIcon
+              className="mb-6"
+            />
+          )}
+
+          {success && (
+            <Alert
+              message="Success"
+              description={success}
+              type="success"
               showIcon
               className="mb-6"
             />
@@ -180,6 +217,19 @@ export const AuthForm = () => {
               </Link>
             </Text>
           </div>
+
+          {/* Test Accounts Info */}
+          {!isSignUp && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <Text strong className="text-blue-800">Test Accounts:</Text>
+              <div className="mt-2 text-sm text-blue-700">
+                <div>Customer: customer@test.com</div>
+                <div>Manager: manager@test.com</div>
+                <div>Admin: admin@test.com</div>
+                <div className="mt-1 text-xs">Password: password123</div>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

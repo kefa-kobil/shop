@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session)
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchUserProfile(session.user.id)
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session)
         setUser(session?.user ?? null)
         if (session?.user) {
           await fetchUserProfile(session.user.id)
@@ -44,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async (userId) => {
     try {
+      console.log('Fetching profile for user:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -55,6 +58,7 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
+      console.log('User profile:', data)
       setUserProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -62,22 +66,56 @@ export const AuthProvider = ({ children }) => {
   }
 
   const signUp = async (email, password, userData = {}) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData
+    try {
+      console.log('Attempting signup with:', { email, userData })
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      })
+
+      console.log('Signup response:', { data, error })
+      
+      if (error) {
+        console.error('Signup error:', error)
+        return { data, error }
       }
-    })
-    return { data, error }
+
+      // If signup successful and user is confirmed, create profile
+      if (data.user && !data.user.email_confirmed_at) {
+        console.log('User created but email not confirmed')
+      }
+
+      return { data, error }
+    } catch (error) {
+      console.error('Signup exception:', error)
+      return { data: null, error }
+    }
   }
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    return { data, error }
+    try {
+      console.log('Attempting signin with:', email)
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      console.log('Signin response:', { data, error })
+      
+      if (error) {
+        console.error('Signin error:', error)
+      }
+
+      return { data, error }
+    } catch (error) {
+      console.error('Signin exception:', error)
+      return { data: null, error }
+    }
   }
 
   const signOut = async () => {

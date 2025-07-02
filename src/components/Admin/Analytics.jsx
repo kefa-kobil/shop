@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import { 
   Card, 
   Row, 
@@ -12,7 +13,9 @@ import {
   Progress,
   Tag,
   Select,
-  DatePicker
+  DatePicker,
+  Spin,
+  message
 } from 'antd'
 import { 
   ArrowLeftOutlined,
@@ -29,15 +32,17 @@ const { RangePicker } = DatePicker
 
 export const Analytics = () => {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('7days')
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
 
-  // Mock analytics data
+  // Analytics data based on actual products
   const [analytics, setAnalytics] = useState({
     revenue: {
-      current: 15420.50,
-      previous: 12350.75,
-      growth: 24.8
+      current: 0,
+      previous: 0,
+      growth: 0
     },
     orders: {
       current: 156,
@@ -56,23 +61,6 @@ export const Analytics = () => {
     }
   })
 
-  const topProducts = [
-    { id: 1, name: 'Fresh Bananas', sales: 245, revenue: 731.55, growth: 12.5 },
-    { id: 2, name: 'Whole Milk', sales: 189, revenue: 754.11, growth: 8.3 },
-    { id: 3, name: 'Sourdough Bread', sales: 156, revenue: 778.44, growth: -2.1 },
-    { id: 4, name: 'Ground Beef', sales: 134, revenue: 1204.66, growth: 15.7 },
-    { id: 5, name: 'Cheddar Cheese', sales: 98, revenue: 538.02, growth: 5.2 }
-  ]
-
-  const categoryPerformance = [
-    { category: 'Fruits', revenue: 3245.67, percentage: 21.0, color: '#52c41a' },
-    { category: 'Dairy', revenue: 2876.43, percentage: 18.6, color: '#1890ff' },
-    { category: 'Meat', revenue: 2654.32, percentage: 17.2, color: '#fa8c16' },
-    { category: 'Bakery', revenue: 2123.45, percentage: 13.8, color: '#722ed1' },
-    { category: 'Vegetables', revenue: 1987.65, percentage: 12.9, color: '#eb2f96' },
-    { category: 'Others', revenue: 2532.98, percentage: 16.5, color: '#13c2c2' }
-  ]
-
   const recentOrders = [
     { id: 'ORD-001', customer: 'John Doe', amount: 45.67, status: 'completed', time: '2 hours ago' },
     { id: 'ORD-002', customer: 'Jane Smith', amount: 78.90, status: 'processing', time: '3 hours ago' },
@@ -82,20 +70,86 @@ export const Analytics = () => {
   ]
 
   useEffect(() => {
-    fetchAnalytics()
+    fetchAnalyticsData()
   }, [timeRange])
 
-  const fetchAnalytics = async () => {
+  const fetchAnalyticsData = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      // Analytics data would be fetched based on timeRange
+      // Fetch actual products from database
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+
+      if (productsError) throw productsError
+
+      setProducts(productsData || [])
+
+      // Calculate category performance based on actual products
+      const categoryStats = {}
+      let totalRevenue = 0
+
+      productsData?.forEach(product => {
+        const category = product.category || 'Uncategorized'
+        const productRevenue = (product.price * (product.reviews_count || 10)) // Mock sales data
+        
+        if (!categoryStats[category]) {
+          categoryStats[category] = {
+            category,
+            revenue: 0,
+            productCount: 0
+          }
+        }
+        
+        categoryStats[category].revenue += productRevenue
+        categoryStats[category].productCount += 1
+        totalRevenue += productRevenue
+      })
+
+      // Convert to array and calculate percentages
+      const categoryArray = Object.values(categoryStats).map(cat => ({
+        ...cat,
+        percentage: totalRevenue > 0 ? (cat.revenue / totalRevenue) * 100 : 0,
+        color: getCategoryColor(cat.category)
+      })).sort((a, b) => b.revenue - a.revenue)
+
+      setCategories(categoryArray)
+
+      // Update analytics with calculated revenue
+      setAnalytics(prev => ({
+        ...prev,
+        revenue: {
+          current: totalRevenue,
+          previous: totalRevenue * 0.8, // Mock previous period
+          growth: 25.0 // Mock growth
+        }
+      }))
+
     } catch (error) {
       console.error('Error fetching analytics:', error)
+      message.error('Failed to load analytics data')
     } finally {
       setLoading(false)
     }
+  }
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      'Fruits': '#52c41a',
+      'Vegetables': '#73d13d',
+      'Dairy': '#1890ff',
+      'Meat': '#fa8c16',
+      'Bakery': '#722ed1',
+      'Beverages': '#13c2c2',
+      'Snacks': '#eb2f96',
+      'Frozen': '#2f54eb',
+      'Pantry': '#fa541c',
+      'Personal Care': '#f759ab',
+      'Household': '#597ef7'
+    }
+    return colors[category] || '#8c8c8c'
   }
 
   const getGrowthIcon = (growth) => {
@@ -120,11 +174,26 @@ export const Analytics = () => {
     }
   }
 
+  // Get top products based on actual data
+  const topProducts = products
+    .map(product => ({
+      id: product.id,
+      name: product.name,
+      sales: product.reviews_count || Math.floor(Math.random() * 100) + 10, // Mock sales
+      revenue: product.price * (product.reviews_count || Math.floor(Math.random() * 100) + 10),
+      growth: (Math.random() - 0.5) * 30 // Mock growth between -15% and +15%
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5)
+
   const topProductsColumns = [
     {
       title: 'Product',
       dataIndex: 'name',
       key: 'name',
+      render: (name) => (
+        <Text className="font-medium">{name}</Text>
+      )
     },
     {
       title: 'Sales',
@@ -187,6 +256,14 @@ export const Analytics = () => {
     },
   ]
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <Spin size="large" />
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -203,7 +280,7 @@ export const Analytics = () => {
         <div className="flex justify-between items-center mt-4">
           <div>
             <Title level={2} className="!mb-2">Analytics Dashboard</Title>
-            <Text type="secondary">Track your business performance</Text>
+            <Text type="secondary">Track your supermarket performance</Text>
           </div>
           <Space>
             <Select
@@ -263,37 +340,20 @@ export const Analytics = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Customers"
-              value={analytics.customers.current}
-              prefix={<UserOutlined />}
+              title="Active Products"
+              value={products.length}
+              prefix={<ShoppingOutlined />}
               valueStyle={{ color: '#722ed1' }}
-              suffix={
-                <Space>
-                  {getGrowthIcon(analytics.customers.growth)}
-                  <span style={{ color: getGrowthColor(analytics.customers.growth), fontSize: '14px' }}>
-                    {analytics.customers.growth.toFixed(1)}%
-                  </span>
-                </Space>
-              }
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Avg Order Value"
-              value={analytics.avgOrderValue.current}
-              precision={2}
-              prefix="$"
+              title="Categories"
+              value={categories.length}
+              prefix={<UserOutlined />}
               valueStyle={{ color: '#fa8c16' }}
-              suffix={
-                <Space>
-                  {getGrowthIcon(analytics.avgOrderValue.growth)}
-                  <span style={{ color: getGrowthColor(analytics.avgOrderValue.growth), fontSize: '14px' }}>
-                    {analytics.avgOrderValue.growth.toFixed(1)}%
-                  </span>
-                </Space>
-              }
             />
           </Card>
         </Col>
@@ -303,34 +363,50 @@ export const Analytics = () => {
         {/* Top Products */}
         <Col xs={24} lg={12}>
           <Card title="Top Selling Products" className="h-full">
-            <Table
-              columns={topProductsColumns}
-              dataSource={topProducts}
-              rowKey="id"
-              pagination={false}
-              size="small"
-            />
+            {topProducts.length > 0 ? (
+              <Table
+                columns={topProductsColumns}
+                dataSource={topProducts}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <div className="text-center py-8">
+                <Text type="secondary">No products found</Text>
+              </div>
+            )}
           </Card>
         </Col>
 
         {/* Category Performance */}
         <Col xs={24} lg={12}>
           <Card title="Category Performance" className="h-full">
-            <Space direction="vertical" className="w-full">
-              {categoryPerformance.map((category, index) => (
-                <div key={index} className="w-full">
-                  <div className="flex justify-between mb-1">
-                    <Text>{category.category}</Text>
-                    <Text strong>${category.revenue.toFixed(2)}</Text>
+            {categories.length > 0 ? (
+              <Space direction="vertical" className="w-full">
+                {categories.map((category, index) => (
+                  <div key={index} className="w-full">
+                    <div className="flex justify-between mb-1">
+                      <Text>{category.category}</Text>
+                      <Space>
+                        <Text type="secondary">({category.productCount} products)</Text>
+                        <Text strong>${category.revenue.toFixed(2)}</Text>
+                      </Space>
+                    </div>
+                    <Progress
+                      percent={category.percentage}
+                      strokeColor={category.color}
+                      showInfo={true}
+                      format={(percent) => `${percent.toFixed(1)}%`}
+                    />
                   </div>
-                  <Progress
-                    percent={category.percentage}
-                    strokeColor={category.color}
-                    showInfo={false}
-                  />
-                </div>
-              ))}
-            </Space>
+                ))}
+              </Space>
+            ) : (
+              <div className="text-center py-8">
+                <Text type="secondary">No categories found</Text>
+              </div>
+            )}
           </Card>
         </Col>
 

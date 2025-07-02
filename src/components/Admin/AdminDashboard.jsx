@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { 
   Row,
@@ -26,6 +26,7 @@ import {
 const { Title, Text } = Typography
 
 export const AdminDashboard = () => {
+  const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -45,17 +46,12 @@ export const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch products count
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-
-      // For now, we'll use mock data for users and orders since we're not using Supabase auth
+      // Mock data for now
       setStats({
-        totalProducts: productsCount || 0,
-        totalUsers: 150, // Mock data
-        totalOrders: 45, // Mock data
-        totalRevenue: 2340.50 // Mock data
+        totalProducts: 156,
+        totalUsers: 1250,
+        totalOrders: 345,
+        totalRevenue: 23450.75
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -186,6 +182,7 @@ export const AdminDashboard = () => {
                   size="large"
                   block
                   className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/add-product')}
                 >
                   <Space direction="vertical" size={0}>
                     <span>Add Product</span>
@@ -198,6 +195,7 @@ export const AdminDashboard = () => {
                   size="large"
                   block
                   className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/analytics')}
                 >
                   <Space direction="vertical" size={0}>
                     <span>View Analytics</span>
@@ -210,6 +208,7 @@ export const AdminDashboard = () => {
                   size="large"
                   block
                   className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/manage-users')}
                 >
                   <Space direction="vertical" size={0}>
                     <span>Manage Users</span>

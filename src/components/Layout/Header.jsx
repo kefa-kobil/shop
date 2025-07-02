@@ -39,7 +39,7 @@ export const Header = () => {
   }
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
-  const isAdmin = user?.role === 'admin'
+  const isCustomer = user?.role === 'customer'
 
   const userMenuItems = [
     {
@@ -48,12 +48,14 @@ export const Header = () => {
       label: user?.fullName || user?.email,
       disabled: true,
     },
-    {
-      key: 'orders',
-      icon: <OrderedListOutlined />,
-      label: 'My Orders',
-      onClick: () => navigate('/orders'),
-    },
+    ...(isCustomer ? [
+      {
+        key: 'orders',
+        icon: <OrderedListOutlined />,
+        label: 'My Orders',
+        onClick: () => navigate('/orders'),
+      },
+    ] : []),
     {
       type: 'divider',
     },
@@ -73,11 +75,13 @@ export const Header = () => {
       label: <Link to="/">Products</Link>,
     },
     ...(isAuthenticated ? [
-      {
-        key: 'orders',
-        icon: <OrderedListOutlined />,
-        label: <Link to="/orders">My Orders</Link>,
-      },
+      ...(isCustomer ? [
+        {
+          key: 'orders',
+          icon: <OrderedListOutlined />,
+          label: <Link to="/orders">My Orders</Link>,
+        },
+      ] : []),
       ...(isManager ? [
         {
           key: 'admin',
@@ -142,16 +146,19 @@ export const Header = () => {
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
             <Space size="middle">
-              <Link to="/cart">
-                <Badge count={itemCount} size="small">
-                  <Button 
-                    type="text" 
-                    icon={<ShoppingCartOutlined />} 
-                    size="large"
-                    className="flex items-center justify-center"
-                  />
-                </Badge>
-              </Link>
+              {/* Only show cart for customers */}
+              {isCustomer && (
+                <Link to="/cart">
+                  <Badge count={itemCount} size="small">
+                    <Button 
+                      type="text" 
+                      icon={<ShoppingCartOutlined />} 
+                      size="large"
+                      className="flex items-center justify-center"
+                    />
+                  </Badge>
+                </Link>
+              )}
               
               <div className="hidden md:flex items-center space-x-2">
                 {user?.role && (

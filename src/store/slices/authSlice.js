@@ -1,29 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-
-// Mock users data - in real app this would come from your API
-const mockUsers = [
-  {
-    id: '1',
-    email: 'customer@test.com',
-    password: 'password123',
-    fullName: 'Test Customer',
-    role: 'customer'
-  },
-  {
-    id: '2',
-    email: 'manager@test.com',
-    password: 'password123',
-    fullName: 'Test Manager',
-    role: 'manager'
-  },
-  {
-    id: '3',
-    email: 'admin@test.com',
-    password: 'password123',
-    fullName: 'Test Admin',
-    role: 'admin'
-  }
-]
+import { supabase } from '../../lib/supabase'
 
 const initialState = {
   user: null,
@@ -109,52 +85,98 @@ export const {
 } = authSlice.actions
 
 // Async action creators
-export const loginUser = (email, password) => (dispatch) => {
+export const loginUser = (email, password) => async (dispatch) => {
   dispatch(loginStart())
   
-  // Simulate API call delay
-  setTimeout(() => {
-    const user = mockUsers.find(u => u.email === email && u.password === password)
-    
-    if (user) {
-      const { password: _, ...userWithoutPassword } = user
-      dispatch(loginSuccess(userWithoutPassword))
-    } else {
-      dispatch(loginFailure('Invalid email or password'))
-    }
-  }, 1000)
-}
+  try {
+    // Sign in with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-export const signupUser = (userData) => (dispatch) => {
-  dispatch(signupStart())
-  
-  // Simulate API call delay
-  setTimeout(() => {
-    // Check if user already exists
-    const existingUser = mockUsers.find(u => u.email === userData.email)
-    
-    if (existingUser) {
-      dispatch(signupFailure('User with this email already exists'))
+    if (authError) {
+      dispatch(loginFailure(authError.message))
       return
     }
-    
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+
+    // Fetch user profile from profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single()
+
+    if (profileError) {
+      dispatch(loginFailure('Failed to fetch user profile'))
+      return
+    }
+
+    // Create user object with UUID id and profile data
+    const user = {
+      id: authData.user.id, // This is a proper UUID from Supabase
+      email: authData.user.email,
+      fullName: profile.full_name,
+      role: profile.role
+    }
+
+    dispatch(loginSuccess(user))
+  } catch (error) {
+    dispatch(loginFailure(error.message || 'Login failed'))
+  }
+}
+
+export const signupUser = (userData) => async (dispatch) => {
+  dispatch(signupStart())
+  
+  try {
+    // Sign up with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
+      password: userData.password
+    })
+
+    if (authError) {
+      dispatch(signupFailure(authError.message))
+      return
+    }
+
+    // Update the user's profile with additional information
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        full_name: userData.fullName,
+        role: userData.role || 'customer'
+      })
+      .eq('id', authData.user.id)
+
+    if (profileError) {
+      dispatch(signupFailure('Failed to update user profile'))
+      return
+    }
+
+    // Create user object with UUID id and profile data
+    const user = {
+      id: authData.user.id, // This is a proper UUID from Supabase
+      email: authData.user.email,
       fullName: userData.fullName,
       role: userData.role || 'customer'
     }
-    
-    // Add to mock users (in real app, this would be an API call)
-    mockUsers.push({ ...newUser, password: userData.password })
-    
-    dispatch(signupSuccess(newUser))
-  }, 1000)
+
+    dispatch(signupSuccess(user))
+  } catch (error) {
+    dispatch(signupFailure(error.message || 'Signup failed'))
+  }
 }
 
-export const logoutUser = () => (dispatch) => {
-  dispatch(logout())
+export const logoutUser = () => async (dispatch) => {
+  try {
+    await supabase.auth.signOut()
+    dispatch(logout())
+  } catch (error) {
+    // Even if signout fails, clear local state
+    dispatch(logout())
+  }
 }
 
 export default authSlice.reducer

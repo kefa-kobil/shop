@@ -21,7 +21,8 @@ import {
   DashboardOutlined,
   ShoppingOutlined,
   OrderedListOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons'
 
 const { Header: AntHeader } = Layout
@@ -93,6 +94,11 @@ export const Header = () => {
           key: 'admin',
           icon: <DashboardOutlined />,
           label: <Link to="/admin">Dashboard</Link>,
+        },
+        {
+          key: 'pos',
+          icon: <CalculatorOutlined />,
+          label: <Link to="/admin/pos">POS</Link>,
         },
       ] : []),
     ] : []),

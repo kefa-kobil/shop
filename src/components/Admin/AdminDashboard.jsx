@@ -22,6 +22,11 @@ import {
   PlusOutlined,
   TeamOutlined
 } from '@ant-design/icons'
+import { 
+  CalculatorOutlined,
+  ReceiptOutlined,
+  ClockCircleOutlined
+} from '@ant-design/icons'
 
 const { Title, Text } = Typography
 
@@ -212,6 +217,45 @@ export const AdminDashboard = () => {
                 >
                   <Space direction="vertical" size={0}>
                     <span>Manage Users</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col xs={24} md={8}>
+                <Button 
+                  icon={<CalculatorOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/pos')}
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>POS System</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col xs={24} md={8}>
+                <Button 
+                  icon={<ReceiptOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/pos-transactions')}
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>POS Transactions</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col xs={24} md={8}>
+                <Button 
+                  icon={<ClockCircleOutlined />} 
+                  size="large"
+                  block
+                  className="h-16 flex items-center justify-center"
+                  onClick={() => navigate('/admin/pos-sessions')}
+                >
+                  <Space direction="vertical" size={0}>
+                    <span>POS Sessions</span>
                   </Space>
                 </Button>
               </Col>

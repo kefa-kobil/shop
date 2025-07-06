@@ -14,7 +14,6 @@ import { Cart } from './components/Cart/Cart'
 import { Orders } from './components/Orders/Orders'
 import { POSSystem } from './components/POS/POSSystem'
 import { POSTransactions } from './components/POS/POSTransactions'
-import { POSSessions } from './components/POS/POSSessions'
 import { Layout } from 'antd'
 
 const { Content } = Layout
@@ -90,14 +89,6 @@ function App() {
               element={
                 <ProtectedRoute requireManager={true}>
                   <POSTransactions />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/pos-sessions" 
-              element={
-                <ProtectedRoute requireManager={true}>
-                  <POSSessions />
                 </ProtectedRoute>
               } 
             />

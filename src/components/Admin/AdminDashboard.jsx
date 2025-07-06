@@ -25,7 +25,6 @@ import {
 import { 
   CalculatorOutlined,
   FileTextOutlined,
-  ClockCircleOutlined
 } from '@ant-design/icons'
 
 const { Title, Text } = Typography
@@ -243,19 +242,6 @@ export const AdminDashboard = () => {
                 >
                   <Space direction="vertical" size={0}>
                     <span>POS Transactions</span>
-                  </Space>
-                </Button>
-              </Col>
-              <Col xs={24} md={8}>
-                <Button 
-                  icon={<ClockCircleOutlined />} 
-                  size="large"
-                  block
-                  className="h-16 flex items-center justify-center"
-                  onClick={() => navigate('/admin/pos-sessions')}
-                >
-                  <Space direction="vertical" size={0}>
-                    <span>POS Sessions</span>
                   </Space>
                 </Button>
               </Col>

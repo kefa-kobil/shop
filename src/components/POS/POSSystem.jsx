@@ -44,7 +44,6 @@ export const POSSystem = () => {
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [paymentModalVisible, setPaymentModalVisible] = useState(false)
-  const [currentSession, setCurrentSession] = useState(null)
   const [form] = Form.useForm()
 
   const isStaff = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'cashier'
@@ -52,7 +51,6 @@ export const POSSystem = () => {
   useEffect(() => {
     if (isStaff) {
       fetchProducts()
-      fetchCurrentSession()
     }
   }, [isStaff])
 
@@ -69,44 +67,6 @@ export const POSSystem = () => {
     } catch (error) {
       console.error('Error fetching products:', error)
       message.error('Failed to fetch products')
-    }
-  }
-
-  const fetchCurrentSession = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('pos_sessions')
-        .select('*')
-        .eq('cashier_id', user.id)
-        .eq('status', 'open')
-        .single()
-
-      if (error && error.code !== 'PGRST116') throw error
-      setCurrentSession(data)
-    } catch (error) {
-      console.error('Error fetching session:', error)
-    }
-  }
-
-  const startSession = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('pos_sessions')
-        .insert({
-          cashier_id: user.id,
-          register_number: `REG-${user.id.slice(-3)}`,
-          opening_cash: 200.00,
-          status: 'open'
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      setCurrentSession(data)
-      message.success('POS session started successfully')
-    } catch (error) {
-      console.error('Error starting session:', error)
-      message.error('Failed to start POS session')
     }
   }
 
@@ -159,11 +119,6 @@ export const POSSystem = () => {
   }
 
   const processPayment = async (values) => {
-    if (!currentSession) {
-      message.error('No active POS session. Please start a session first.')
-      return
-    }
-
     setLoading(true)
     try {
       const { subtotal, taxAmount, total } = calculateTotals()
@@ -334,23 +289,8 @@ export const POSSystem = () => {
         <div className="flex justify-between items-center">
           <div>
             <Title level={2} className="!mb-2">Point of Sale</Title>
-            <Space>
-              <Badge status="processing" text={`Session: ${currentSession.register_number}`} />
-              <Text type="secondary">Cashier: {user.fullName}</Text>
-            </Space>
+            <Text type="secondary">Cashier: {user.fullName}</Text>
           </div>
-          <Space>
-            <Statistic
-              title="Session Sales"
-              value={currentSession.total_sales}
-              prefix={<DollarOutlined />}
-              precision={2}
-            />
-            <Statistic
-              title="Transactions"
-              value={currentSession.total_transactions}
-            />
-          </Space>
         </div>
       </div>
 

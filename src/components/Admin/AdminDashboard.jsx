@@ -24,7 +24,7 @@ import {
 } from '@ant-design/icons'
 import { 
   CalculatorOutlined,
-  ReceiptOutlined,
+  FileTextOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons'
 
@@ -235,7 +235,7 @@ export const AdminDashboard = () => {
               </Col>
               <Col xs={24} md={8}>
                 <Button 
-                  icon={<ReceiptOutlined />} 
+                  icon={<FileTextOutlined />} 
                   size="large"
                   block
                   className="h-16 flex items-center justify-center"

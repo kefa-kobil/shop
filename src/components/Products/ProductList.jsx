@@ -64,17 +64,13 @@ export const ProductList = () => {
 
   const fetchCategories = async () => {
     try {
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        console.warn('Supabase not configured, using empty categories')
-        setCategories([])
-        return
-      }
-
-      // Check if environment variables are placeholder values
-      if (import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' || 
-          import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key') {
-        console.warn('Supabase environment variables are placeholder values, using empty categories')
+      // Check if Supabase is properly configured with real values
+      if (!import.meta.env.VITE_SUPABASE_URL || 
+          !import.meta.env.VITE_SUPABASE_ANON_KEY ||
+          import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' || 
+          import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key' ||
+          import.meta.env.VITE_SUPABASE_URL.includes('placeholder') ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY.includes('placeholder')) {
         setCategories([])
         return
       }
@@ -89,8 +85,7 @@ export const ProductList = () => {
       const uniqueCategories = [...new Set(data?.map(item => item.category) || [])]
       setCategories(uniqueCategories)
     } catch (error) {
-      console.error('Error fetching categories:', error)
-      // Set empty categories on error to prevent UI issues
+      // Silently handle fetch errors when Supabase is not configured
       setCategories([])
     }
   }

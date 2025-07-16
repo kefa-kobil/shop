@@ -39,6 +39,13 @@ export const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
+      // Check if Supabase is properly configured
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        setError('Supabase not configured. Please connect to Supabase to view products.')
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -48,7 +55,7 @@ export const ProductList = () => {
       if (error) throw error
       setProducts(data || [])
     } catch (error) {
-      setError('Failed to fetch products')
+      setError('Failed to fetch products. Please check your connection.')
       console.error('Error:', error)
     } finally {
       setLoading(false)
@@ -57,6 +64,13 @@ export const ProductList = () => {
 
   const fetchCategories = async () => {
     try {
+      // Check if Supabase is properly configured
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.warn('Supabase not configured, using empty categories')
+        setCategories([])
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('category')
@@ -68,6 +82,8 @@ export const ProductList = () => {
       setCategories(uniqueCategories)
     } catch (error) {
       console.error('Error fetching categories:', error)
+      // Set empty categories on error to prevent UI issues
+      setCategories([])
     }
   }
 

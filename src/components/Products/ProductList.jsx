@@ -70,6 +70,7 @@ export const ProductList = () => {
           import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' || 
           import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key' ||
           import.meta.env.VITE_SUPABASE_URL.includes('placeholder') ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY.includes('placeholder')) {
         console.warn('Supabase environment variables are placeholder values, using mock categories')
         // Use mock categories when Supabase is not properly configured
         setCategories(['Fruits', 'Vegetables', 'Dairy', 'Meat', 'Bakery', 'Beverages', 'Snacks'])

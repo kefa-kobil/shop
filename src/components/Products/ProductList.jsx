@@ -68,32 +68,23 @@ export const ProductList = () => {
       if (!import.meta.env.VITE_SUPABASE_URL || 
           !import.meta.env.VITE_SUPABASE_ANON_KEY ||
           import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' || 
-          import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key' ||
-          import.meta.env.VITE_SUPABASE_URL.includes('placeholder') ||
-          import.meta.env.VITE_SUPABASE_ANON_KEY.includes('placeholder')) {
-        console.warn('Supabase environment variables are placeholder values, using mock categories')
+          import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key') {
         // Use mock categories when Supabase is not properly configured
         setCategories(['Fruits', 'Vegetables', 'Dairy', 'Meat', 'Bakery', 'Beverages', 'Snacks'])
         return
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('category')
-          .not('category', 'is', null)
+      const { data, error } = await supabase
+        .from('products')
+        .select('category')
+        .not('category', 'is', null)
 
-        if (error) throw error
-        
-        const uniqueCategories = [...new Set(data?.map(item => item.category) || [])]
-        setCategories(uniqueCategories)
-      } catch (fetchError) {
-        // If fetch fails, fall back to mock categories
-        console.warn('Failed to fetch categories from Supabase, using mock categories:', fetchError)
-        setCategories(['Fruits', 'Vegetables', 'Dairy', 'Meat', 'Bakery', 'Beverages', 'Snacks'])
-      }
+      if (error) throw error
+      
+      const uniqueCategories = [...new Set(data?.map(item => item.category) || [])]
+      setCategories(uniqueCategories)
     } catch (error) {
-      // Set mock categories on error to prevent UI issues
+      // Fall back to mock categories on any error
       setCategories(['Fruits', 'Vegetables', 'Dairy', 'Meat', 'Bakery', 'Beverages', 'Snacks'])
     }
   }

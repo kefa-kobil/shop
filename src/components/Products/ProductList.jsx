@@ -71,6 +71,14 @@ export const ProductList = () => {
         return
       }
 
+      // Check if environment variables are placeholder values
+      if (import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' || 
+          import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key') {
+        console.warn('Supabase environment variables are placeholder values, using empty categories')
+        setCategories([])
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('category')

@@ -122,6 +122,17 @@ export const AuctionList = () => {
   const fetchAuctions = async () => {
     setLoading(true)
     try {
+      // Always use mock data for now since database isn't connected
+      let filteredMockAuctions = mockAuctions
+      if (statusFilter && statusFilter !== 'active') {
+        filteredMockAuctions = mockAuctions.filter(auction => auction.status === statusFilter)
+      }
+      setAuctions(filteredMockAuctions)
+      setLoading(false)
+      return
+
+      // Database code (commented out until Supabase is connected)
+      /*
       // Check if Supabase is properly configured
       if (!import.meta.env.VITE_SUPABASE_URL || 
           !import.meta.env.VITE_SUPABASE_ANON_KEY ||
@@ -187,6 +198,7 @@ export const AuctionList = () => {
         setAuctions(filteredMockAuctions)
       }
     } catch (error) {
+      */
       // Final fallback to mock data
       console.error('Error fetching auctions:', error)
       let filteredMockAuctions = mockAuctions

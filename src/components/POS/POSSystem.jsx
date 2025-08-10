@@ -264,24 +264,6 @@ export const POSSystem = () => {
     )
   }
 
-  if (!currentSession) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <div className="text-center py-8">
-            <Title level={3}>No Active Session</Title>
-            <Text type="secondary" className="block mb-4">
-              You need to start a POS session before making sales
-            </Text>
-            <Button type="primary" size="large" onClick={startSession}>
-              Start POS Session
-            </Button>
-          </div>
-        </Card>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}

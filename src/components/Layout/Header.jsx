@@ -140,7 +140,7 @@ export const Header = () => {
         <Link to="/" className="flex items-center space-x-2">
           <ShopOutlined className="text-2xl text-blue-600" />
           <span className="text-xl font-bold text-gray-900 hidden sm:block">
-            SuperMarket
+            Hot Deals
           </span>
         </Link>
 

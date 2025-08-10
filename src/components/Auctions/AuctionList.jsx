@@ -121,9 +121,10 @@ export const AuctionList = () => {
 
   const fetchAuctions = async () => {
     setLoading(true)
+    let filteredMockAuctions = mockAuctions
     try {
       // Always use mock data for now since database isn't connected
-      let filteredMockAuctions = mockAuctions
+      filteredMockAuctions = mockAuctions
       if (statusFilter && statusFilter !== 'active') {
         filteredMockAuctions = mockAuctions.filter(auction => auction.status === statusFilter)
       }
@@ -201,7 +202,7 @@ export const AuctionList = () => {
       */
       // Final fallback to mock data
       console.error('Error fetching auctions:', error)
-      let filteredMockAuctions = mockAuctions
+      filteredMockAuctions = mockAuctions
       if (statusFilter) {
         filteredMockAuctions = mockAuctions.filter(auction => auction.status === statusFilter)
       }

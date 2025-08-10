@@ -27,12 +27,14 @@ import {
   SearchOutlined,
   FacebookOutlined,
   InstagramOutlined,
-  AppleOutlined,
-  CoffeeOutlined,
-  GiftOutlined,
-  HeartOutlined,
   HomeOutlined,
-  MedicineBoxOutlined
+  BedOutlined,
+  TableOutlined,
+  LaptopOutlined,
+  TrophyOutlined,
+  ToolOutlined,
+  GiftOutlined,
+  HeartOutlined
 } from '@ant-design/icons'
 
 const { Header: AntHeader } = Layout
@@ -82,14 +84,14 @@ export const Header = () => {
   ]
 
   const categories = [
-    { key: 'fruits', icon: <AppleOutlined />, label: 'Fruits', color: '#52c41a' },
-    { key: 'vegetables', icon: <GiftOutlined />, label: 'Vegetables', color: '#73d13d' },
-    { key: 'dairy', icon: <CoffeeOutlined />, label: 'Dairy', color: '#1890ff' },
-    { key: 'meat', icon: <HeartOutlined />, label: 'Meat', color: '#fa8c16' },
-    { key: 'bakery', icon: <HomeOutlined />, label: 'Bakery', color: '#722ed1' },
-    { key: 'beverages', icon: <CoffeeOutlined />, label: 'Beverages', color: '#13c2c2' },
-    { key: 'snacks', icon: <GiftOutlined />, label: 'Snacks', color: '#eb2f96' },
-    { key: 'health', icon: <MedicineBoxOutlined />, label: 'Health', color: '#f759ab' },
+    { key: 'chairs', icon: <HomeOutlined />, label: 'Chairs', color: '#1890ff' },
+    { key: 'tables', icon: <TableOutlined />, label: 'Tables', color: '#52c41a' },
+    { key: 'sofas', icon: <HeartOutlined />, label: 'Sofas', color: '#fa8c16' },
+    { key: 'beds', icon: <BedOutlined />, label: 'Beds', color: '#722ed1' },
+    { key: 'storage', icon: <ToolOutlined />, label: 'Storage', color: '#13c2c2' },
+    { key: 'electronics', icon: <LaptopOutlined />, label: 'Electronics', color: '#eb2f96' },
+    { key: 'sports', icon: <TrophyOutlined />, label: 'Sports', color: '#f759ab' },
+    { key: 'miscellaneous', icon: <GiftOutlined />, label: 'Miscellaneous', color: '#faad14' },
   ]
 
   return (
@@ -101,23 +103,25 @@ export const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center">
               <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                   <ShopOutlined className="text-2xl text-white" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-md">
                   <span className="text-xs text-white font-bold">!</span>
                 </div>
               </div>
               <div className="ml-3">
-                <div className="text-2xl font-bold text-gray-900">Hot Deals</div>
-                <div className="text-xs text-gray-500 -mt-1">Grocery • Liquidation • More</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-red-500 to-blue-600 bg-clip-text text-transparent">
+                  Daily Outlet
+                </div>
+                <div className="text-xs text-gray-500 -mt-1">Furniture • Liquidation • More</div>
               </div>
             </Link>
 
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-2xl mx-8">
               <Search
-                placeholder="Search for products..."
+                placeholder="Search for furniture, electronics, sports goods..."
                 size="large"
                 className="w-full"
                 style={{
@@ -139,13 +143,13 @@ export const Header = () => {
                   type="text"
                   shape="circle"
                   icon={<FacebookOutlined />}
-                  className="text-blue-600 hover:bg-blue-50"
+                  className="text-blue-600 hover:bg-blue-50 transition-colors"
                 />
                 <Button
                   type="text"
                   shape="circle"
                   icon={<InstagramOutlined />}
-                  className="text-pink-600 hover:bg-pink-50"
+                  className="text-pink-600 hover:bg-pink-50 transition-colors"
                 />
               </div>
 
@@ -159,7 +163,7 @@ export const Header = () => {
                           type="text" 
                           icon={<ShoppingCartOutlined />} 
                           size="large"
-                          className="flex items-center justify-center hover:bg-gray-50"
+                          className="flex items-center justify-center hover:bg-gray-50 transition-colors"
                         />
                       </Badge>
                     </Link>
@@ -167,7 +171,7 @@ export const Header = () => {
                   
                   <div className="hidden md:flex items-center space-x-2">
                     {user?.role && (
-                      <span className="px-3 py-1 text-xs bg-gradient-to-r from-red-500 to-blue-600 text-white rounded-full font-medium">
+                      <span className="px-3 py-1 text-xs bg-gradient-to-r from-red-500 to-blue-600 text-white rounded-full font-medium shadow-sm">
                         {user.role}
                       </span>
                     )}
@@ -176,7 +180,7 @@ export const Header = () => {
                       placement="bottomRight"
                       trigger={['click']}
                     >
-                      <Button type="text" className="flex items-center space-x-2 hover:bg-gray-50">
+                      <Button type="text" className="flex items-center space-x-2 hover:bg-gray-50 transition-colors">
                         <Avatar size="small" icon={<UserOutlined />} />
                         <span className="hidden lg:inline text-sm">
                           {user?.fullName || user?.email}
@@ -188,12 +192,12 @@ export const Header = () => {
               ) : (
                 <div className="hidden md:flex items-center space-x-4">
                   <Link to="/auth">
-                    <Button type="text" className="hover:bg-gray-50">Sign In</Button>
+                    <Button type="text" className="hover:bg-gray-50 transition-colors">Sign In</Button>
                   </Link>
                   <Link to="/auth?mode=signup">
                     <Button 
                       type="primary" 
-                      className="bg-gradient-to-r from-red-500 to-blue-600 border-none hover:from-red-600 hover:to-blue-700"
+                      className="bg-gradient-to-r from-red-500 to-blue-600 border-none hover:from-red-600 hover:to-blue-700 shadow-md transition-all"
                     >
                       Sign Up
                     </Button>
@@ -206,7 +210,7 @@ export const Header = () => {
                 type="text"
                 icon={<MenuOutlined />}
                 onClick={() => setDrawerVisible(true)}
-                className="md:hidden hover:bg-gray-50"
+                className="md:hidden hover:bg-gray-50 transition-colors"
               />
             </div>
           </div>
@@ -222,10 +226,10 @@ export const Header = () => {
                 <Link
                   key={category.key}
                   to={`/?category=${category.key}`}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 whitespace-nowrap group"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 whitespace-nowrap group transition-all"
                 >
                   <div 
-                    className="p-2 rounded-full group-hover:scale-110 transition-transform"
+                    className="p-2 rounded-full group-hover:scale-110 transition-transform shadow-sm"
                     style={{ backgroundColor: `${category.color}20` }}
                   >
                     <span style={{ color: category.color }}>
@@ -239,17 +243,17 @@ export const Header = () => {
 
             {/* Additional Navigation */}
             <div className="hidden lg:flex items-center space-x-6">
-              <Link to="/auctions" className="flex items-center space-x-1 text-gray-700 hover:text-red-600">
+              <Link to="/auctions" className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors">
                 <ThunderboltOutlined />
                 <span className="text-sm font-medium">Auctions</span>
               </Link>
               {isManager && (
                 <>
-                  <Link to="/admin" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+                  <Link to="/admin" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors">
                     <DashboardOutlined />
                     <span className="text-sm font-medium">Dashboard</span>
                   </Link>
-                  <Link to="/admin/pos" className="flex items-center space-x-1 text-gray-700 hover:text-green-600">
+                  <Link to="/admin/pos" className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition-colors">
                     <CalculatorOutlined />
                     <span className="text-sm font-medium">POS</span>
                   </Link>
@@ -290,10 +294,10 @@ export const Header = () => {
                   key={category.key}
                   to={`/?category=${category.key}`}
                   onClick={() => setDrawerVisible(false)}
-                  className="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50"
+                  className="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div 
-                    className="p-3 rounded-full mb-2"
+                    className="p-3 rounded-full mb-2 shadow-sm"
                     style={{ backgroundColor: `${category.color}20` }}
                   >
                     <span style={{ color: category.color }}>
@@ -311,7 +315,7 @@ export const Header = () => {
             <Link
               to="/auctions"
               onClick={() => setDrawerVisible(false)}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <ThunderboltOutlined className="text-red-500" />
               <span>Auctions</span>
@@ -321,7 +325,7 @@ export const Header = () => {
               <Link
                 to="/orders"
                 onClick={() => setDrawerVisible(false)}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <OrderedListOutlined className="text-blue-500" />
                 <span>My Orders</span>
@@ -333,7 +337,7 @@ export const Header = () => {
                 <Link
                   to="/admin"
                   onClick={() => setDrawerVisible(false)}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <DashboardOutlined className="text-blue-500" />
                   <span>Dashboard</span>
@@ -341,7 +345,7 @@ export const Header = () => {
                 <Link
                   to="/admin/pos"
                   onClick={() => setDrawerVisible(false)}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <CalculatorOutlined className="text-green-500" />
                   <span>POS System</span>
